@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%91%91%3C/text%3E%3C/svg%3E">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Charm School Tracker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cherry+Swash:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: a sticky "academy" side panel on the left, the application board on the right; stacks on phones. */
+:root{
+  --bg:#fff4f8; --surface:#ffffff; --blush:#ffe0ec; --line:#f5c9dc;
+  --ink:#4b1f39; --muted:#93617d; --accent:#e0428f; --accent-ink:#ffffff; --gold:#d9a441;
+  --panel:#ffd3e5; --panel-ink:#5a1d40;
+  --s-wish:#a58bd6; --s-prog:#5aa7e6; --s-sub:#e0428f; --s-oa:#f0a33c; --s-int:#3fb39a; --s-off:#d9a441; --s-rej:#b9a3ae; --s-ghost:#c7b8c0;
+  --display:"Cherry Swash", "Georgia", serif;
+  --body:"Nunito", ui-rounded, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r:16px; --shadow:0 6px 20px -10px rgba(224,66,143,.35);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#24131d; --surface:#331b2a; --blush:#4a2339; --line:#5a2f48;
+  --ink:#fbe6f0; --muted:#d3a3bd; --accent:#ff74b6; --accent-ink:#2a0f1e; --gold:#f0c46a;
+  --panel:#3e1b30; --panel-ink:#ffd6e8;
+  --s-rej:#8f7884; --s-ghost:#7d6d76; --shadow:0 6px 20px -10px rgba(0,0,0,.6); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#24131d; --surface:#331b2a; --blush:#4a2339; --line:#5a2f48;
+  --ink:#fbe6f0; --muted:#d3a3bd; --accent:#ff74b6; --accent-ink:#2a0f1e; --gold:#f0c46a;
+  --panel:#3e1b30; --panel-ink:#ffd6e8;
+  --s-rej:#8f7884; --s-ghost:#7d6d76; --shadow:0 6px 20px -10px rgba(0,0,0,.6); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.app{display:grid;grid-template-columns:300px minmax(0,1fr);gap:28px;max-width:1280px;margin:0 auto;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 48px}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:8px}
+
+/* ---------- Academy panel ---------- */
+.academy{position:sticky;top:calc(env(safe-area-inset-top,0px) + 20px);align-self:start;background:var(--panel);color:var(--panel-ink);
+  border-radius:28px;padding:24px 22px;overflow:hidden;isolation:isolate}
+.academy::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.55;
+  background-image:radial-gradient(circle at 20% 15%,var(--surface) 0 2px,transparent 3px),radial-gradient(circle at 80% 40%,var(--surface) 0 1.5px,transparent 2.5px),radial-gradient(circle at 35% 70%,var(--surface) 0 2px,transparent 3px),radial-gradient(circle at 75% 88%,var(--surface) 0 1.5px,transparent 2.5px);
+  background-size:120px 140px}
+.crest{display:block;width:120px;height:auto;margin:0 auto 8px}
+.academy h1{font-family:var(--display);font-weight:700;font-size:1.7rem;line-height:1.1;text-align:center;margin:0;text-wrap:balance}
+.motto{text-align:center;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;font-weight:800;opacity:.75;margin:8px 0 18px}
+.crowns{background:var(--surface);color:var(--ink);border-radius:var(--r);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
+.crowns b{font-family:var(--display);font-size:1.6rem;color:var(--gold);font-variant-numeric:tabular-nums}
+.crowns span{font-size:.82rem;color:var(--muted);font-weight:700}
+.lesson-h{font-family:var(--display);font-size:1.1rem;margin:0 0 6px}
+.lessons{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.lessons li{display:grid;grid-template-columns:22px 1fr;gap:6px;font-size:.88rem;line-height:1.4}
+.lessons li::before{content:"♛";color:var(--accent);font-size:.95rem}
+.ticket{margin-top:16px;border-top:2px dashed color-mix(in srgb,var(--panel-ink) 30%,transparent);padding-top:12px;font-size:.8rem;text-align:center;opacity:.8}
+
+/* ---------- Main ---------- */
+.top{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px;margin-bottom:16px}
+.top h2{font-family:var(--display);font-size:2rem;margin:0;line-height:1.1}
+.top p{margin:2px 0 0;color:var(--muted);font-weight:600}
+.btn{border:0;border-radius:999px;padding:10px 18px;font-weight:800;cursor:pointer;background:var(--accent);color:var(--accent-ink);box-shadow:var(--shadow)}
+.btn:hover{filter:brightness(1.05)}
+.btn.ghost{background:var(--blush);color:var(--ink);box-shadow:none}
+.btn.danger{background:transparent;color:var(--accent);box-shadow:none;border:2px solid var(--accent)}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-weight:700;font-size:.85rem;cursor:pointer}
+.chip i{width:9px;height:9px;border-radius:50%;background:var(--c,var(--accent))}
+.chip b{font-variant-numeric:tabular-nums;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--blush)}
+
+.tools{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.tools input,.tools select{background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:8px 12px;min-width:0}
+.tools input{flex:1 1 220px}
+.tools select{flex:0 1 180px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0;position:relative}
+.card.example{border-style:dashed;opacity:.8}
+.card .row1{display:flex;justify-content:space-between;align-items:start;gap:8px}
+.card h3{margin:0;font-size:1.08rem;line-height:1.25;overflow-wrap:anywhere}
+.card .role{color:var(--muted);font-weight:700;font-size:.9rem;overflow-wrap:anywhere}
+.tag{font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:var(--blush);border-radius:999px;padding:3px 9px;white-space:nowrap}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:.86rem;margin:0}
+.facts dt{color:var(--muted);font-weight:700}
+.facts dd{margin:0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.due-soon{color:var(--accent);font-weight:800}
+.notes{font-size:.85rem;color:var(--muted);margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.card .foot{display:flex;gap:8px;align-items:center;margin-top:auto}
+.status-sel{flex:1;min-width:0;appearance:none;border:0;border-radius:999px;padding:7px 30px 7px 12px;font-weight:800;font-size:.85rem;cursor:pointer;
+  background:color-mix(in srgb,var(--c) 22%,var(--surface)) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23e0428f' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat right 12px center;
+  box-shadow:inset 4px 0 0 var(--c)}
+.icon-btn{border:0;background:var(--blush);border-radius:999px;padding:7px 12px;font-weight:800;font-size:.82rem;cursor:pointer}
+.card a{color:var(--accent);font-weight:700}
+
+.empty{grid-column:1/-1;background:var(--surface);border:2px dashed var(--line);border-radius:20px;padding:22px;text-align:center}
+.empty h3{font-family:var(--display);margin:0 0 4px;font-size:1.3rem}
+.empty p{margin:0 0 12px;color:var(--muted)}
+.note{font-size:.82rem;color:var(--muted);margin:14px 0 0}
+
+/* ---------- Dialog ---------- */
+dialog{border:0;border-radius:24px;padding:0;background:var(--surface);color:var(--ink);width:min(560px,calc(100vw - 32px));max-height:calc(100dvh - 32px);box-shadow:0 30px 80px -20px rgba(120,20,70,.45)}
+dialog::backdrop{background:color-mix(in srgb,var(--ink) 35%,transparent)}
+.form{padding:22px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form h3{grid-column:1/-1;margin:0;font-family:var(--display);font-size:1.5rem}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f.wide{grid-column:1/-1}
+.f label{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.f input,.f select,.f textarea{background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:9px 11px;min-width:0;width:100%}
+.f textarea{min-height:80px;resize:vertical}
+.pay{display:flex;gap:6px}
+.pay input{flex:1}
+.pay select{flex:0 0 92px}
+.actions{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;margin-top:4px}
+.actions .right{display:flex;gap:10px;margin-left:auto}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-weight:700;font-size:.88rem;z-index:20}
+
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .academy{position:static;display:grid;grid-template-columns:84px 1fr;gap:4px 14px;align-items:center}
+  .crest{width:84px;grid-row:span 2;margin:0}
+  .academy h1{text-align:left;font-size:1.4rem}
+  .motto{text-align:left;margin:0}
+  .crowns,.lesson-h,.lessons,.ticket{grid-column:1/-1}
+  .crowns{margin:10px 0 4px}
+  .lessons li:nth-child(n+3){display:none}
+}
+@media (max-width:480px){.form{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:no-preference){.card{transition:transform .15s}.card:hover{transform:translateY(-2px)}}
+</style>
+
+<div class="app">
+  <aside class="academy" aria-label="Academy panel">
+    <svg class="crest" viewBox="0 0 120 130" role="img" aria-label="Academy crest with a tiara">
+      <path d="M60 18 L108 32 V70 C108 98 86 116 60 126 C34 116 12 98 12 70 V32 Z" fill="var(--surface)" stroke="var(--accent)" stroke-width="4"/>
+      <path d="M60 30 L98 41 V70 C98 92 81 106 60 114 C39 106 22 92 22 70 V41 Z" fill="var(--blush)"/>
+      <path d="M34 62 L40 44 L50 56 L60 36 L70 56 L80 44 L86 62 Z" fill="var(--gold)" stroke="var(--panel-ink)" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="60" cy="36" r="4" fill="var(--accent)"/><circle cx="40" cy="44" r="3" fill="var(--accent)"/><circle cx="80" cy="44" r="3" fill="var(--accent)"/>
+      <rect x="34" y="62" width="52" height="7" rx="3" fill="var(--gold)" stroke="var(--panel-ink)" stroke-width="2"/>
+      <text x="60" y="96" text-anchor="middle" font-family="Cherry Swash, Georgia, serif" font-size="18" font-weight="700" fill="var(--panel-ink)">PPA</text>
+      <path d="M14 10 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" fill="var(--gold)"/><path d="M104 8 l1.5 4 4 1.5 -4 1.5 -1.5 4 -1.5 -4 -4 -1.5 4 -1.5z" fill="var(--accent)"/>
+    </svg>
+    <h1>Petal Point Princess Academy</h1>
+    <p class="motto">Poise · Polish · Offers</p>
+    <div class="crowns"><span>Crowns earned<br>(offers)</span><b id="crownCount">0</b></div>
+    <h4 class="lesson-h">Today's charm lessons</h4>
+    <ul class="lessons" id="lessons"></ul>
+    <p class="ticket" id="storeNote">Private to you</p>
+  </aside>
+
+  <main>
+    <div class="top">
+      <div>
+        <h2>My applications</h2>
+        <p id="summary">Loading your list…</p>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn ghost" id="exportBtn" type="button" hidden>Back up</button>
+        <button class="btn ghost" id="importBtn" type="button" hidden>Restore</button>
+        <input type="file" id="importFile" accept=".json,application/json" hidden>
+        <button class="btn" id="addBtn" type="button">+ Add a role</button>
+      </div>
+    </div>
+
+    <div class="chips" id="chips" role="group" aria-label="Filter by status"></div>
+
+    <div class="tools">
+      <input id="search" type="search" placeholder="Search company, role, location…" aria-label="Search">
+      <select id="typeFilter" aria-label="Filter by type"></select>
+      <select id="sort" aria-label="Sort">
+        <option value="updated">Recently updated</option>
+        <option value="deadline">Deadline soonest</option>
+        <option value="company">Company A–Z</option>
+        <option value="pay">Highest pay</option>
+      </select>
+    </div>
+
+    <div class="grid" id="grid"></div>
+    <p class="note" id="loadNote" hidden></p>
+  </main>
+</div>
+
+<dialog id="dlg">
+  <form class="form" id="form" method="dialog">
+    <h3 id="formTitle">Add a role</h3>
+    <div class="f"><label for="f-company">Company</label><input id="f-company" required placeholder="e.g. Delta"></div>
+    <div class="f"><label for="f-role">Role title</label><input id="f-role" required placeholder="e.g. Software Engineering Intern"></div>
+    <div class="f"><label for="f-type">Type</label><select id="f-type"></select></div>
+    <div class="f"><label for="f-term">Term</label><select id="f-term"></select></div>
+    <div class="f"><label for="f-status">Status</label><select id="f-status"></select></div>
+    <div class="f"><label for="f-mode">Work setup</label><select id="f-mode"><option>On-site</option><option>Hybrid</option><option>Remote</option><option>Not sure yet</option></select></div>
+    <div class="f"><label for="f-location">Location</label><input id="f-location" placeholder="e.g. Atlanta, GA"></div>
+    <div class="f"><label for="f-pay">Pay</label><div class="pay"><input id="f-pay" type="number" min="0" step="0.01" inputmode="decimal" placeholder="35"><select id="f-payunit" aria-label="Pay period"><option value="hr">/ hr</option><option value="wk">/ wk</option><option value="mo">/ mo</option><option value="yr">/ yr</option></select></div></div>
+    <div class="f"><label for="f-applied">Date applied</label><input id="f-applied" type="date"></div>
+    <div class="f"><label for="f-deadline">Next deadline</label><input id="f-deadline" type="date"></div>
+    <div class="f wide"><label for="f-link">Posting link</label><input id="f-link" type="url" placeholder="https://"></div>
+    <div class="f wide"><label for="f-notes">Notes</label><textarea id="f-notes" placeholder="Recruiter name, OA platform, interview rounds, questions they asked…"></textarea></div>
+    <div class="actions">
+      <button class="btn danger" type="button" id="delBtn" hidden>Delete</button>
+      <div class="right">
+        <button class="btn ghost" type="button" id="cancelBtn">Cancel</button>
+        <button class="btn" type="submit" id="saveBtn">Save</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const STATUSES=[
+  {v:"wishlist",l:"Wishlist",c:"--s-wish"},{v:"progress",l:"In progress",c:"--s-prog"},
+  {v:"submitted",l:"Submitted",c:"--s-sub"},{v:"oa",l:"OA",c:"--s-oa"},
+  {v:"interview",l:"Interview",c:"--s-int"},{v:"offer",l:"Offer",c:"--s-off"},
+  {v:"rejected",l:"Rejected",c:"--s-rej"},{v:"ghosted",l:"No response",c:"--s-ghost"}];
+const TYPES=["Internship","Co-op","Research","Part-time","New grad / Full-time","Fellowship"];
+const TERMS=(()=>{const y=new Date().getFullYear();const out=[];for(let i=0;i<4;i++){const yr=y+i;out.push(`Spring ${yr}`,`Summer ${yr}`,`Fall ${yr}`)}out.push("Future / not set");return out.filter(t=>!t.startsWith(`Spring ${y}`))})();
+const LESSONS=[
+  "Send a thank-you note within 24 hours of every interview.",
+  "No word after two weeks? A short, kind follow-up is perfectly proper.",
+  "Most OAs expire in 5 to 7 days. Log the deadline the moment it lands.",
+  "Tailor the top three bullets of your resume to each posting.",
+  "Every no clears the path to your yes. Log it and keep walking.",
+  "Ask your interviewer one question about their own team. They remember it.",
+  "Summer roles often open in August and September. Early bird gets the tiara.",
+  "Write down interview questions right after. Future you will curtsy."];
+const EXAMPLES=[
+  {id:"ex1",company:"Example: Magnolia Bank",role:"Data Analyst Intern",type:"Internship",term:TERMS[1],status:"interview",mode:"Hybrid",location:"Atlanta, GA",pay:32,payUnit:"hr",notes:"Round 2 with the hiring manager"},
+  {id:"ex2",company:"Example: Peachtree Health",role:"Software Co-op",type:"Co-op",term:TERMS[0],status:"oa",mode:"On-site",location:"Athens, GA",pay:28,payUnit:"hr",notes:"HackerRank, 90 minutes"},
+  {id:"ex3",company:"Example: Bluebird Studio",role:"Product Design Intern",type:"Internship",term:TERMS[1],status:"submitted",mode:"Remote",location:"Remote",pay:6200,payUnit:"mo"}];
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const statusOf=v=>STATUSES.find(s=>s.v===v)||STATUSES[1];
+let items=[],loaded=false,store=null,filterStatus=null,editingId=null;
+
+/* ----- fill selects ----- */
+const opt=(v,l)=>`<option value="${esc(v)}">${esc(l??v)}</option>`;
+$("#f-type").innerHTML=TYPES.map(t=>opt(t)).join("");
+$("#f-term").innerHTML=TERMS.map(t=>opt(t)).join("");
+$("#f-status").innerHTML=STATUSES.map(s=>opt(s.v,s.l)).join("");
+$("#typeFilter").innerHTML=opt("","All types")+TYPES.map(t=>opt(t)).join("");
+$("#lessons").innerHTML=(()=>{const d=Math.floor(Date.now()/864e5);return [0,1,2].map(i=>`<li>${esc(LESSONS[(d+i*3)%LESSONS.length])}</li>`).join("")})();
+
+/* ----- storage: private db on claude.ai, browser storage anywhere else (e.g. GitHub Pages) ----- */
+function localStore(){
+  const KEY="charm-tracker-v1";
+  const read=()=>{try{return JSON.parse(localStorage.getItem(KEY)||"[]")}catch{return[]}};
+  const write=a=>{try{localStorage.setItem(KEY,JSON.stringify(a))}catch{toast("Couldn't save in this browser")}};
+  let cb;
+  return{kind:"local",
+    subscribe(f){cb=f;f(read())},
+    async save(it){const a=read().filter(x=>x.id!==it.id);a.push(it);write(a);cb&&cb(read())},
+    async remove(id){write(read().filter(x=>x.id!==id));cb&&cb(read())}};
+}
+function dbStore(db,uid){
+  const col=db.collection("data/users/"+uid);
+  return{kind:"db",
+    subscribe(f){
+      const t=setTimeout(()=>{const n=$("#loadNote");n.textContent="Your list is taking a while to load. It will appear as soon as it connects.";n.hidden=false},10000);
+      col.onSnapshot(s=>{if(!s.metadata.fromCache){clearTimeout(t);$("#loadNote").hidden=true}f(s.docs.map(d=>({...d.data(),id:d.id})))},
+        e=>{clearTimeout(t);const n=$("#loadNote");n.textContent="Your list couldn't be reached right now. Try reopening the page.";n.hidden=false});
+    },
+    async save(it){const {id,...body}=it;await col.doc(id).set(body)},
+    async remove(id){await col.doc(id).delete()}};
+}
+async function initStore(){
+  for(let i=0;i<15 && !window.claude?.use;i++) await new Promise(r=>setTimeout(r,100));
+  if(window.claude?.use){
+    try{
+      const [db,user]=await Promise.all([claude.use("db"),claude.use("user")]);
+      const uid=user?await user.id():null;
+      if(db&&uid) return dbStore(db,uid);
+    }catch{}
+  }
+  return localStore();
+}
+
+/* ----- render ----- */
+function fmtPay(it){if(it.pay===""||it.pay==null||isNaN(it.pay))return "—";const n=Number(it.pay);return "$"+n.toLocaleString(undefined,{maximumFractionDigits:n<1000?2:0})+" / "+(it.payUnit||"hr")}
+function payYear(it){const n=Number(it.pay)||0;return n*({hr:2080,wk:52,mo:12,yr:1}[it.payUnit||"hr"])}
+function fmtDate(d){if(!d)return "";const x=new Date(d+"T12:00");return x.toLocaleDateString(undefined,{month:"short",day:"numeric"})}
+function daysTo(d){if(!d)return null;return Math.ceil((new Date(d+"T23:59")-new Date())/864e5)}
+
+function cardHTML(it,example){
+  const s=statusOf(it.status);const dl=daysTo(it.deadline);
+  const facts=[["Term",esc(it.term||"—")],["Where",esc([it.location,it.mode].filter(Boolean).join(" · ")||"—")],["Pay",esc(fmtPay(it))]];
+  if(it.applied)facts.push(["Applied",esc(fmtDate(it.applied))]);
+  if(it.deadline)facts.push(["Deadline",`<span class="${dl!==null&&dl>=0&&dl<=3?"due-soon":""}">${esc(fmtDate(it.deadline))}${dl!==null&&dl>=0&&dl<=3?` (${dl===0?"today":dl+"d left"})`:""}</span>`]);
+  return `<article class="card${example?" example":""}" style="--c:var(${s.c})" data-id="${esc(it.id)}">
+    <div class="row1"><div style="min-width:0"><h3>${esc(it.company)}</h3><div class="role">${esc(it.role)}</div></div><span class="tag">${esc(it.type||"")}</span></div>
+    <dl class="facts">${facts.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>
+    ${it.notes?`<p class="notes">${esc(it.notes)}</p>`:""}
+    ${it.link&&/^https?:\/\//i.test(it.link)?`<a href="${esc(it.link)}" target="_blank" rel="noopener">Open posting ↗</a>`:""}
+    <div class="foot">
+      <select class="status-sel" style="--c:var(${s.c})" aria-label="Status for ${esc(it.company)}" ${example?"disabled":""}>${STATUSES.map(x=>`<option value="${x.v}"${x.v===s.v?" selected":""}>${x.l}</option>`).join("")}</select>
+      ${example?"":`<button class="icon-btn edit" type="button">Edit</button>`}
+    </div></article>`;
+}
+
+function render(){
+  const counts={};STATUSES.forEach(s=>counts[s.v]=0);items.forEach(i=>counts[statusOf(i.status).v]++);
+  $("#crownCount").textContent=counts.offer;
+  const active=items.filter(i=>!["rejected","ghosted","offer","wishlist"].includes(statusOf(i.status).v)).length;
+  $("#summary").textContent=!loaded?"Loading your list…":items.length?`${items.length} tracked · ${active} still in play · ${counts.interview} interviewing`:"Nothing tracked yet";
+  $("#chips").innerHTML=`<button class="chip" type="button" data-s="" aria-pressed="${!filterStatus}">All <b>${items.length}</b></button>`+
+    STATUSES.map(s=>`<button class="chip" type="button" data-s="${s.v}" style="--c:var(${s.c})" aria-pressed="${filterStatus===s.v}"><i></i>${s.l} <b>${counts[s.v]}</b></button>`).join("");
+
+  if(!loaded){$("#grid").innerHTML="";return}
+  if(!items.length){
+    $("#grid").innerHTML=`<div class="empty"><h3>Your ballroom is empty</h3><p>These three are examples so you can see how cards look. Add your first real role and they'll disappear.</p><button class="btn" type="button" data-add>+ Add my first role</button></div>`+EXAMPLES.map(e=>cardHTML(e,true)).join("");
+    return;
+  }
+  const q=$("#search").value.trim().toLowerCase(),tf=$("#typeFilter").value,sort=$("#sort").value;
+  let list=items.filter(i=>(!filterStatus||statusOf(i.status).v===filterStatus)&&(!tf||i.type===tf)&&
+    (!q||[i.company,i.role,i.location,i.notes,i.term].join(" ").toLowerCase().includes(q)));
+  const cmp={updated:(a,b)=>(b.updated||0)-(a.updated||0),
+    deadline:(a,b)=>(a.deadline||"9999").localeCompare(b.deadline||"9999"),
+    company:(a,b)=>(a.company||"").localeCompare(b.company||""),
+    pay:(a,b)=>payYear(b)-payYear(a)}[sort];
+  list.sort(cmp);
+  $("#grid").innerHTML=list.length?list.map(i=>cardHTML(i)).join(""):`<div class="empty"><h3>No matches</h3><p>Try another filter or clear your search.</p></div>`;
+}
+
+/* ----- form ----- */
+const F=k=>$("#f-"+k);
+let delArmed=false;
+function openForm(it){
+  editingId=it?.id||null;delArmed=false;$("#delBtn").textContent="Delete";
+  $("#formTitle").textContent=it?"Edit role":"Add a role";$("#delBtn").hidden=!it;
+  const d=it||{type:"Internship",term:TERMS[1],status:"progress",mode:"On-site",payUnit:"hr"};
+  ["company","role","type","term","status","mode","location","pay","applied","deadline","link","notes"].forEach(k=>F(k).value=d[k]??"");
+  F("payunit").value=d.payUnit||"hr";
+  $("#dlg").showModal();F("company").focus();
+}
+$("#form").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const it={id:editingId||("a"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),updated:Date.now()};
+  ["company","role","type","term","status","mode","location","applied","deadline","link","notes"].forEach(k=>it[k]=F(k).value.trim());
+  it.pay=F("pay").value===""?null:Number(F("pay").value);it.payUnit=F("payunit").value;
+  $("#dlg").close();
+  try{await store.save(it);toast(editingId?"Saved":"Added to your list")}catch{toast("Couldn't save. Try again in a moment.")}
+});
+$("#cancelBtn").onclick=()=>$("#dlg").close();
+$("#delBtn").onclick=async()=>{
+  if(!delArmed){delArmed=true;$("#delBtn").textContent="Tap again to delete";return}
+  const id=editingId;$("#dlg").close();
+  try{await store.remove(id);toast("Deleted")}catch{toast("Couldn't delete. Try again.")}
+};
+
+/* ----- events ----- */
+$("#addBtn").onclick=()=>openForm();
+$("#chips").onclick=e=>{const b=e.target.closest(".chip");if(!b)return;filterStatus=b.dataset.s||null;render()};
+["search","typeFilter","sort"].forEach(id=>$("#"+id).addEventListener("input",render));
+$("#grid").addEventListener("click",e=>{
+  if(e.target.closest("[data-add]"))return openForm();
+  const c=e.target.closest(".card");if(!c||!e.target.closest(".edit"))return;
+  openForm(items.find(i=>i.id===c.dataset.id));
+});
+$("#grid").addEventListener("change",async e=>{
+  if(!e.target.classList.contains("status-sel"))return;
+  const id=e.target.closest(".card").dataset.id;const it=items.find(i=>i.id===id);if(!it)return;
+  const next={...it,status:e.target.value,updated:Date.now()};
+  try{await store.save(next);toast(next.status==="offer"?"An offer! Crown earned ♛":"Status updated")}catch{toast("Couldn't update. Try again.")}
+});
+$("#exportBtn").onclick=()=>{
+  const blob=new Blob([JSON.stringify({app:"charm-tracker",version:1,saved:new Date().toISOString(),items},null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`charm-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast("Backup downloaded");
+};
+$("#importBtn").onclick=()=>$("#importFile").click();
+$("#importFile").onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    const data=JSON.parse(await f.text());const list=Array.isArray(data)?data:data.items;
+    if(!Array.isArray(list))throw 0;
+    for(const it of list){if(it&&it.id&&it.company)await store.save(it)}
+    toast(`Restored ${list.length} roles`);
+  }catch{toast("That file isn't a tracker backup")}
+  e.target.value="";
+};
+let tt;function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2200)}
+
+render();
+initStore().then(s=>{
+  store=s;
+  $("#storeNote").textContent=s.kind==="db"?"Saved privately to your account. Only you can see your list.":"Saved in this browser only. Use Back up to move it to another device.";
+  if(s.kind==="local"){$("#exportBtn").hidden=false;$("#importBtn").hidden=false}
+  s.subscribe(list=>{items=list;loaded=true;render()});
+});
+</script>
+
+</body>
+</html>
